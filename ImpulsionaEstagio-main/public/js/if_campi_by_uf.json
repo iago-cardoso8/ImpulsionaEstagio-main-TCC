@@ -1,0 +1,257 @@
+{
+  "AC": [
+    "Cruzeiro do Sul",
+    "Rio Branco"
+  ],
+  "AL": [
+    "Maceió",
+    "Arapiraca",
+    "Palmeira dos Indios",
+    "Piranhas",
+    "Delmiro Gouveia",
+    "Murici",
+    "São Miguel dos Campos",
+    "Boca da Mata",
+    "Santa Luzia do Norte"
+  ],
+  "AP": [
+    "Macapá",
+    "Santana",
+    "Laranjal do Jari"
+  ],
+  "AM": [
+    "Manaus",
+    "Parintins",
+    "Itacoatiara",
+    "Coari",
+    "Manacapuru",
+    "Humaitá"
+  ],
+  "BA": [
+    "Salvador",
+    "Feira de Santana",
+    "Vitória da Conquista",
+    "Barreiras",
+    "Ilhéus",
+    "Juazeiro",
+    "Santa Inês",
+    "Uruçuca",
+    "Caetité",
+    "Brumado"
+  ],
+  "CE": [
+    "Fortaleza",
+    "Juazeiro do Norte",
+    "Sobral",
+    "Crato",
+    "Quixadá",
+    "Tianguá",
+    "Russas",
+    "Iguatu",
+    "Camocim"
+  ],
+  "DF": [
+    "Brasília",
+    "Gama",
+    "Planaltina",
+    "Taguatinga",
+    "Ceilândia"
+  ],
+  "ES": [
+    "Vitória",
+    "Cachoeiro de Itapemirim",
+    "Venda Nova do Imigrante",
+    "Linhares",
+    "Colatina"
+  ],
+  "GO": [
+    "Goiânia",
+    "Rio Verde",
+    "Catalão",
+    "Ceres",
+    "Jataí",
+    "Posse",
+    "Trindade",
+    "Iporá",
+    "Formosa",
+    "Anicuns",
+    "Itumbiara",
+    "Morrinhos",
+    "Cristalina"
+  ],
+  "MA": [
+    "São Luís",
+    "Imperatriz",
+    "Caxias",
+    "Balsas",
+    "Codó",
+    "Chapadinha",
+    "Pinheiro",
+    "Pedreiras"
+  ],
+  "MT": [
+    "Cuiabá",
+    "Várzea Grande",
+    "Rondonópolis",
+    "Sinop",
+    "Cáceres",
+    "Barra do Garças"
+  ],
+  "MS": [
+    "Campo Grande",
+    "Dourados",
+    "Três Lagoas",
+    "Corumbá",
+    "Nova Andradina"
+  ],
+  "MG": [
+    "Uberlândia",
+    "Uberaba",
+    "Patos de Minas",
+    "Paracatu",
+    "Patrocínio",
+    "Bambuí",
+    "Barbacena",
+    "Congonhas",
+    "Formiga",
+    "Ituiutaba",
+    "Leopoldina",
+    "Monte Carmelo",
+    "Nepomuceno",
+    "Varginha",
+    "São João Evangelista",
+    "Teófilo Otoni"
+  ],
+  "PA": [
+    "Belém",
+    "Ananindeua",
+    "Santarém",
+    "Marabá",
+    "Castanhal",
+    "Altamira",
+    "Parauapebas",
+    "Tucuruí",
+    "Cametá"
+  ],
+  "PB": [
+    "João Pessoa",
+    "Campina Grande",
+    "Santa Rita",
+    "Patos",
+    "Cajazeiras",
+    "Sousa",
+    "Guarabira",
+    "Cabedelo",
+    "Areia",
+    "Bayeux"
+  ],
+  "PR": [
+    "Curitiba",
+    "Londrina",
+    "Maringá",
+    "Ponta Grossa",
+    "Cascavel",
+    "Foz do Iguaçu",
+    "Paranavaí",
+    "Apucarana",
+    "Guarapuava",
+    "Telêmaco Borba"
+  ],
+  "PE": [
+    "Recife",
+    "Caruaru",
+    "Petrolina",
+    "Igarassu",
+    "Vitória de Santo Antão",
+    "Palmares",
+    "Belo Jardim",
+    "Pesqueira"
+  ],
+  "PI": [
+    "Teresina",
+    "Parnaíba",
+    "Picos",
+    "Floriano",
+    "São Raimundo Nonato",
+    "Oeiras"
+  ],
+  "RJ": [
+    "Rio de Janeiro",
+    "Niterói",
+    "Campos dos Goytacazes",
+    "Macaé",
+    "Itaperuna",
+    "Cabo Frio",
+    "Nova Friburgo",
+    "Petrópolis"
+  ],
+  "RN": [
+    "Natal",
+    "Mossoró",
+    "Currais Novos",
+    "Caicó",
+    "Macau",
+    "Pau dos Ferros"
+  ],
+  "RS": [
+    "Porto Alegre",
+    "Caxias do Sul",
+    "Pelotas",
+    "Canoas",
+    "Santa Maria",
+    "Bento Gonçalves",
+    "Erechim",
+    "Bagé",
+    "Rio Grande"
+  ],
+  "RO": [
+    "Porto Velho",
+    "Ji-Paraná",
+    "Ariquemes",
+    "Vilhena",
+    "Cacoal",
+    "Jaru"
+  ],
+  "RR": [
+    "Boa Vista",
+    "Pacaraima",
+    "Rorainópolis"
+  ],
+  "SC": [
+    "Florianópolis",
+    "Joinville",
+    "Blumenau",
+    "Chapecó",
+    "Criciúma",
+    "Lages",
+    "Jaraguá do Sul",
+    "Concórdia",
+    "Camboriú",
+    "Itajaí"
+  ],
+  "SP": [
+    "São Paulo",
+    "Campinas",
+    "Santos",
+    "Bauru",
+    "São José dos Campos",
+    "Guarulhos",
+    "Piracicaba",
+    "Presidente Prudente",
+    "Sertãozinho"
+  ],
+  "SE": [
+    "Aracaju",
+    "Lagarto",
+    "Propriá",
+    "Nossa Senhora da Glória",
+    "Itabaiana"
+  ],
+  "TO": [
+    "Palmas",
+    "Araguaína",
+    "Gurupi",
+    "Porto Nacional",
+    "Dianópolis"
+  ]
+}

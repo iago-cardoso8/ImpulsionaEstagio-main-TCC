@@ -1,0 +1,203 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### ========== TESTES DA API DE VAGAS ==========
+### Este arquivo contém todos os testes das operações CRUD
+### Use a extensão REST Client para executar cada requisição
+### Pressione "Send Request" ou use Ctrl+Alt+R
+
+### ========== READ OPERATIONS ==========
+
+### 1. Listar todas as vagas
+GET {{baseUrl}}/api/vagas
+Accept: {{contentType}}
+
+###
+
+### 2. Buscar vaga por ID (id: 1)
+GET {{baseUrl}}/api/vagas/1
+Accept: {{contentType}}
+
+###
+
+### 3. Buscar vaga por ID que não existe (erro 404)
+GET {{baseUrl}}/api/vagas/9999
+Accept: {{contentType}}
+
+###
+
+### ========== CREATE OPERATIONS ==========
+
+### 4. Criar nova vaga com todos os campos
+POST {{baseUrl}}/api/vagas
+Content-Type: {{contentType}}
+
+{
+  "title": "Desenvolvedor Back-end Node.js",
+  "company": "Tech Solutions Brasil",
+  "location": "São Paulo - SP",
+  "time": "Há 1 hora",
+  "type": "Estágio",
+  "salary": "R$ 1500,00",
+  "target": "Informática",
+  "desc": "Desenvolvimento de APIs REST com Node.js e Express. Trabalho com banco de dados SQL.",
+  "requirements": [
+    "Node.js intermediário",
+    "Express.js",
+    "SQL e SQLite",
+    "Git e GitHub"
+  ],
+  "benefits": [
+    "Vale Refeição",
+    "Vale Transporte",
+    "Certificado"
+  ]
+}
+
+###
+
+### 5. Criar vaga com dados mínimos (apenas obrigatórios)
+POST {{baseUrl}}/api/vagas
+Content-Type: {{contentType}}
+
+{
+  "title": "Técnico em Eletrônica",
+  "company": "Indústria ABC",
+  "location": "Recife - PE",
+  "salary": "R$ 1800,00",
+  "target": "Eletrotécnica"
+}
+
+###
+
+### 6. Criar vaga com erro - faltam campos obrigatórios (erro 400)
+POST {{baseUrl}}/api/vagas
+Content-Type: {{contentType}}
+
+{
+  "title": "Desenvolvedor Python",
+  "company": "DataTech"
+}
+
+###
+
+### 7. Criar vaga com arrays de requirements e benefits
+POST {{baseUrl}}/api/vagas
+Content-Type: {{contentType}}
+
+{
+  "title": "Designer Gráfico Trainee",
+  "company": "Creative Studio IFPB",
+  "location": "João Pessoa - PB",
+  "time": "Há 3 dias",
+  "type": "Estágio",
+  "salary": "R$ 1100,00",
+  "target": "Design",
+  "desc": "Criação de peças gráficas e materiais para web.",
+  "requirements": [
+    "Photoshop básico",
+    "Figma",
+    "Criatividade"
+  ],
+  "benefits": [
+    "Bolsa Auxílio",
+    "Certificado de conclusão"
+  ]
+}
+
+###
+
+### ========== UPDATE OPERATIONS ==========
+
+### 8. Atualizar apenas o título da vaga (ID: 1)
+PUT {{baseUrl}}/api/vagas/1
+Content-Type: {{contentType}}
+
+{
+  "title": "Estágio em Eletrônica - Atualizado"
+}
+
+###
+
+### 9. Atualizar múltiplos campos
+PUT {{baseUrl}}/api/vagas/1
+Content-Type: {{contentType}}
+
+{
+  "salary": "R$ 1000,00",
+  "desc": "Descrição atualizada com mais detalhes sobre a vaga",
+  "type": "CLT"
+}
+
+###
+
+### 10. Atualizar vaga com novo array de requirements
+PUT {{baseUrl}}/api/vagas/2
+Content-Type: {{contentType}}
+
+{
+  "requirements": [
+    "CNC avançado",
+    "Leitura de projetos",
+    "Responsabilidade"
+  ]
+}
+
+###
+
+### 11. Atualizar vaga que não existe (erro 404)
+PUT {{baseUrl}}/api/vagas/9999
+Content-Type: {{contentType}}
+
+{
+  "title": "Vaga inexistente"
+}
+
+###
+
+### ========== DELETE OPERATIONS ==========
+
+### 12. Deletar vaga por ID
+DELETE {{baseUrl}}/api/vagas/3
+Accept: {{contentType}}
+
+###
+
+### 13. Deletar vaga que não existe (erro 404)
+DELETE {{baseUrl}}/api/vagas/9999
+Accept: {{contentType}}
+
+###
+
+### ========== TESTES VALIDAÇÃO DE DADOS ==========
+
+### 14. Criar vaga com requirements como string (será convertido)
+POST {{baseUrl}}/api/vagas
+Content-Type: {{contentType}}
+
+{
+  "title": "Analista de Sistemas",
+  "company": "InfoSystem Corp",
+  "location": "Brasília - DF",
+  "salary": "R$ 2500,00",
+  "target": "Informática",
+  "desc": "Análise e desenvolvimento de sistemas integrados",
+  "requirements": [
+    "Análise de requisitos",
+    "UML",
+    "Gestão de projetos"
+  ],
+  "benefits": [
+    "Plano de saúde",
+    "Plano odontológico",
+    "Bônus semestral"
+  ]
+}
+
+###
+
+### 15. Listar vagas após todas as operações (verificar integridade)
+GET {{baseUrl}}/api/vagas
+Accept: {{contentType}}
+
+###

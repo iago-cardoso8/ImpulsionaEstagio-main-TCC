@@ -107,6 +107,27 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 /**
+ * GET /api/vagas/target/:target
+ * Busca vagas por target (área)
+ */
+router.get('/target/:target', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const vagas = await VagasService.findByTarget(String(req.params.target));
+    res.status(200).json({
+      sucesso: true,
+      quantidade: vagas.length,
+      dados: vagas,
+    });
+  } catch (erro: any) {
+    console.error('Erro ao buscar vagas por target:', erro.message);
+    res.status(500).json({
+      sucesso: false,
+      erro: 'Erro ao buscar vagas por target',
+    });
+  }
+});
+
+/**
  * GET /api/vagas/:id
  * Busca uma vaga específica por ID
  */
@@ -138,27 +159,6 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({
       sucesso: false,
       erro: 'Erro interno do servidor ao buscar vaga',
-    });
-  }
-});
-
-/**
- * GET /api/vagas/target/:target
- * Busca vagas por target (área)
- */
-router.get('/target/:target', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const vagas = await VagasService.findByTarget(String(req.params.target));
-    res.status(200).json({
-      sucesso: true,
-      quantidade: vagas.length,
-      dados: vagas,
-    });
-  } catch (erro: any) {
-    console.error('Erro ao buscar vagas por target:', erro.message);
-    res.status(500).json({
-      sucesso: false,
-      erro: 'Erro ao buscar vagas por target',
     });
   }
 });
@@ -261,12 +261,15 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Only the company that created the vaga can update it
-    if (req.user?.role !== 'company' || (req.user?.id && vagaExistente.usuarioId !== req.user.id)) {
+    if (req.user?.role !== 'company' || req.user.id !== vagaExistente.usuarioId) {
       res.status(403).json({ sucesso: false, erro: 'Permissão negada para atualizar esta vaga' });
       return;
     }
 
-    const vagaAtualizada = await VagasService.update(id, req.body);
+    const vagaAtualizada = await VagasService.update(id, {
+      ...req.body,
+      company: req.user?.name || vagaExistente.company,
+    });
 
     res.status(200).json({
       sucesso: true,
@@ -299,8 +302,18 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     }
 
     const id = parseInt(req.params.id as string, 10);
-    // Only the company that created the vaga can delete it
-    if (req.user?.role !== 'company' || (req.user?.id && vagaExistente.usuarioId !== req.user.id)) {
+    const vagaExistente = await VagasService.findById(id);
+
+    if (!vagaExistente) {
+      res.status(404).json({
+        sucesso: false,
+        erro: 'Vaga não encontrada',
+        id,
+      });
+      return;
+    }
+
+    if (req.user?.role !== 'company' || req.user.id !== vagaExistente.usuarioId) {
       res.status(403).json({ sucesso: false, erro: 'Permissão negada para remover esta vaga' });
       return;
     }
@@ -311,7 +324,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
       res.status(404).json({
         sucesso: false,
         erro: 'Vaga não encontrada',
-        id: id,
+        id,
       });
       return;
     }

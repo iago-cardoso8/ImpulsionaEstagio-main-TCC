@@ -213,15 +213,7 @@ async function submitJobForm(event) {
         const response = await authFetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            // Ensure company jobs are authored by the logged-in company
-            body: JSON.stringify((() => {
-                const p = { ...payload };
-                const role = window.authenticatedUser?.role || localStorage.getItem('impulsiona_role_choice');
-                if (role === 'company' && window.authenticatedUser?.name) {
-                    p.company = window.authenticatedUser.name;
-                }
-                return p;
-            })())
+            body: JSON.stringify(payload)
         });
         const result = await response.json();
         if (!response.ok) {
@@ -231,20 +223,7 @@ async function submitJobForm(event) {
         setFormMessage(result.mensagem || 'Operação realizada com sucesso.', false);
         form?.reset();
         resetFormState();
-        // If API returned the created/updated vaga, add/replace locally for immediate visibility
-        try {
-            const created = result.dados;
-            if (created) {
-                // remove existing with same id
-                jobs = jobs.filter(j => j.id !== created.id);
-                jobs.unshift(created);
-                // re-render jobs immediately
-                renderJobs();
-            }
-        }
-        catch (e) { /* ignore */ }
-        // refresh from server in background
-        void carregarVagas();
+        await carregarVagas();
         switchView('jobs');
     }
     catch (error) {

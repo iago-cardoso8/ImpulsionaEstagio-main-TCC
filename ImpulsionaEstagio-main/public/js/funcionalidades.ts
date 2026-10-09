@@ -1,6 +1,30 @@
 let profileData: Profile | null = null;
 let notificationsList: NotificationItem[] = [];
 
+function formatJobTime(job: Job): string {
+    const publishedAt = job.createdAt ? new Date(job.createdAt).getTime() : Number.NaN;
+    if (!Number.isFinite(publishedAt)) return job.time || 'Data não informada';
+
+    const minutes = Math.max(0, Math.floor((Date.now() - publishedAt) / 60000));
+    if (minutes < 1) return 'Agora mesmo';
+    if (minutes < 60) return `Há ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `Há ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `Há ${days} ${days === 1 ? 'dia' : 'dias'}`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 5) return `Há ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+    const months = Math.floor(days / 30);
+    return `Há ${months} ${months === 1 ? 'mês' : 'meses'}`;
+}
+
+function wasPublishedWithin(job: Job, maxAgeMs: number, fallbackTerm: string): boolean {
+    const publishedAt = job.createdAt ? new Date(job.createdAt).getTime() : Number.NaN;
+    return Number.isFinite(publishedAt)
+        ? Date.now() - publishedAt <= maxAgeMs
+        : job.time.toLowerCase().includes(fallbackTerm);
+}
+
 async function carregarVagas() {
     try {
         const resposta = await fetch('/api/vagas');
@@ -43,6 +67,10 @@ function switchView(viewName: string) {
         carregarVagas();
     } else if (viewName === 'register') {
         if (!isAuthenticated()) { openAuthPanel(); return; }
+        if (!isCompanyUser()) {
+            alert('Apenas empresas podem cadastrar vagas.');
+            return;
+        }
         viewRegisterContainer?.classList.add('active-view');
         navCadastro?.classList.add('active');
     } else if (viewName === 'notifications') {
@@ -118,15 +146,15 @@ function handleSearch() {
 function showDetails(job: Job) {
     const isSaved = savedJobs.includes(job.id);
     const reqList = Array.isArray(job.requirements)
-        ? job.requirements.map((r: string) => `<li>${r}</li>`).join("")
-        : `<li>${job.requirements}</li>`;
+        ? job.requirements.map((r: string) => `<li>${escapeHtml(r)}</li>`).join("")
+        : `<li>${escapeHtml(String(job.requirements))}</li>`;
     const benList = Array.isArray(job.benefits)
-        ? job.benefits.map((b: string) => `<li>${b}</li>`).join("")
-        : job.benefits ? `<li>${job.benefits}</li>` : '<li>Nenhum benefício listado</li>';
-        const managementActions = isAuthenticated()
-                ? `<button class="btn-action" onclick="startJobEdit(${job.id})">Editar</button>
-                    <button class="btn-action btn-delete" onclick="deleteJob(${job.id})">Excluir</button>`
-                : '';
+        ? job.benefits.map((b: string) => `<li>${escapeHtml(b)}</li>`).join("")
+        : job.benefits ? `<li>${escapeHtml(String(job.benefits))}</li>` : '<li>Nenhum benefício listado</li>';
+    const managementActions = canManageJob(job.usuarioId)
+            ? `<button class="btn-action" onclick="startJobEdit(${job.id})">Editar</button>
+                <button class="btn-action btn-delete" onclick="deleteJob(${job.id})">Excluir</button>`
+            : '';
 
     const jobDetails = getElement<HTMLElement>('job-details');
     if (!jobDetails) return;
@@ -135,10 +163,10 @@ function showDetails(job: Job) {
       <div class="detail-header">
         <div>
           <p class="detail-eyebrow">Oportunidade disponível</p>
-          <h2>${job.title}</h2>
-          <h4>${job.company}</h4>
-          <p class="detail-meta">${job.location} · <strong>${job.salary}</strong></p>
-          <p class="detail-email">E-mail: ${job.email || 'Não informado'}</p>
+          <h2>${escapeHtml(job.title)}</h2>
+          <h4>${escapeHtml(job.company)}</h4>
+          <p class="detail-meta">${escapeHtml(job.location)} · <strong>${escapeHtml(job.salary)}</strong></p>
+          <p class="detail-email">E-mail: ${escapeHtml(job.email || 'Não informado')}</p>
         </div>
         <div class="detail-actions">
                     ${managementActions}
@@ -148,12 +176,12 @@ function showDetails(job: Job) {
         </div>
       </div>
       <div class="detail-badges">
-        <span class="tag">${job.target}</span>
-        <span class="tag">${job.type}</span>
+        <span class="tag">${escapeHtml(job.target)}</span>
+        <span class="tag">${escapeHtml(job.type)}</span>
       </div>
       <div class="info-block">
         <h4>Sobre a Vaga</h4>
-        <p style="color:#555; line-height:1.6; margin:0">${job.desc}</p>
+        <p style="color:#555; line-height:1.6; margin:0">${escapeHtml(job.desc)}</p>
       </div>
       <div class="info-block">
         <h4>Requisitos</h4>
@@ -193,10 +221,10 @@ function renderNotifications() {
     listContainer.innerHTML = notificationsToShow.map(notification => `
         <div class="notification-card">
             <div class="notification-header">
-                <strong>${notification.title}</strong>
-                <span>${notification.time}</span>
+                <strong>${escapeHtml(notification.title)}</strong>
+                <span>${escapeHtml(notification.time)}</span>
             </div>
-            <p>${notification.message}</p>
+            <p>${escapeHtml(notification.message)}</p>
         </div>
     `).join('');
 }
@@ -313,8 +341,8 @@ function renderJobs() {
         let matchData = true;
         if (datasMarcadas.length > 0) {
             matchData = datasMarcadas.some(opcao => {
-                if (opcao === 'hoje') return job.time.includes('hora');
-                if (opcao === 'semana') return job.time.includes('dia');
+                if (opcao === 'hoje') return wasPublishedWithin(job, 24 * 60 * 60 * 1000, 'hora');
+                if (opcao === 'semana') return wasPublishedWithin(job, 7 * 24 * 60 * 60 * 1000, 'dia');
                 return false;
             });
         }
@@ -340,18 +368,18 @@ function renderJobs() {
         card.className = "job-card";
         card.id = `card-${job.id}`;
 
-        const avatarUrl = `https://ui-avatars.com/api/?name=${job.company}&background=2d9669&color=fff`;
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=2d9669&color=fff`;
 
         card.innerHTML = `
       <img src="${avatarUrl}" alt="Logo">
       <div class="job-card-info">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-            <h4>${job.title}</h4>
+            <h4>${escapeHtml(job.title)}</h4>
             ${isSaved ? '<span style="color:#e91e63; font-size:1.1rem;">♥</span>' : ''}
         </div>
-        <p><strong>${job.company}</strong></p>
-        <p>${job.location}</p>
-        <small style="color:#2d9669; font-weight:600">${job.time}</small>
+        <p><strong>${escapeHtml(job.company)}</strong></p>
+        <p>${escapeHtml(job.location)}</p>
+        <small style="color:#2d9669; font-weight:600">${escapeHtml(formatJobTime(job))}</small>
       </div>
     `;
 

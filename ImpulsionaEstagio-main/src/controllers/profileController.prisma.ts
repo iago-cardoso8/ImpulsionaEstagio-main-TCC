@@ -23,8 +23,8 @@ function validarEmail(email: any): ValidationError | null {
   return null;
 }
 
-function validarCampos(data: any): ValidationError | null {
-  const camposObrigatorios = ['name', 'email', 'course', 'campus'];
+function validarCampos(data: any, role?: string): ValidationError | null {
+  const camposObrigatorios = role === 'company' ? ['name', 'email'] : ['name', 'email', 'course', 'campus'];
   const faltantes = camposObrigatorios.filter(
     (campo) => !data[campo] || data[campo].toString().trim() === ''
   );
@@ -115,13 +115,20 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const erroValidacao = validarCampos(req.body) || validarEmail(req.body.email);
+    const userRole = req.user?.role || 'student';
+    const erroValidacao = validarCampos(req.body, userRole) || validarEmail(req.body.email);
     if (erroValidacao) {
       res.status(erroValidacao.status).json(erroValidacao);
       return;
     }
 
-    const novoPerfil = await PerfilService.create({ ...req.body, usuarioId: req.user!.id });
+    const perfilData = { ...req.body, usuarioId: req.user!.id };
+    if (userRole === 'company') {
+      perfilData.course = perfilData.course || '';
+      perfilData.campus = perfilData.campus || '';
+    }
+
+    const novoPerfil = await PerfilService.create(perfilData);
     if (!novoPerfil) {
       res.status(500).json({
         sucesso: false,
@@ -167,12 +174,17 @@ router.put('/', async (req: Request, res: Response): Promise<void> => {
       perfilAtualizado = await PerfilService.update(perfilExistente.id, req.body);
     } else {
       // Não há perfil — validar campos obrigatórios e criar
-      const erroValidacao = validarCampos(req.body);
+      const erroValidacao = validarCampos(req.body, req.user?.role || 'student');
       if (erroValidacao) {
         res.status(erroValidacao.status).json(erroValidacao);
         return;
       }
-      perfilAtualizado = await PerfilService.create({ ...req.body, usuarioId: req.user!.id });
+      const perfilData = { ...req.body, usuarioId: req.user!.id };
+      if ((req.user?.role || 'student') === 'company') {
+        perfilData.course = perfilData.course || '';
+        perfilData.campus = perfilData.campus || '';
+      }
+      perfilAtualizado = await PerfilService.create(perfilData);
     }
 
     if (!perfilAtualizado) {

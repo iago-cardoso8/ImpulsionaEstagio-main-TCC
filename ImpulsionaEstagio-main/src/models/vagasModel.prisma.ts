@@ -168,16 +168,14 @@ async function remove(id: number): Promise<VagaResponse | null> {
  * Buscar vagas por target (área)
  */
 async function findByTarget(target: string): Promise<VagaResponse[]> {
+  const normalizedTarget = target.trim().toLowerCase();
   const vagas = await prisma.vaga.findMany({
-    where: {
-      target: {
-        contains: target,
-        mode: 'insensitive',
-      },
-    },
     orderBy: { createdAt: 'desc' },
   });
-  return vagas.map(parseVagaResponse);
+
+  return vagas
+    .filter((vaga) => vaga.target.toLowerCase().includes(normalizedTarget))
+    .map(parseVagaResponse);
 }
 
 export { findAll, findById, create, update, remove, findByTarget };

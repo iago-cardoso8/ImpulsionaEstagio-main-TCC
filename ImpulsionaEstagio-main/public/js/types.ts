@@ -11,6 +11,8 @@ interface Job {
   benefits: string[] | string;
   type: string;
   time: string;
+  usuarioId?: number | null;
+  createdAt?: string | Date;
 }
 
 interface Profile {

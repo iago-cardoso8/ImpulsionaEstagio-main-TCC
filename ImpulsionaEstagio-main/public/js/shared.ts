@@ -22,6 +22,15 @@ function getTextValue(id: string): string {
     return getElement<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(id)?.value.trim() ?? '';
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 declare function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 declare function isAuthenticated(): boolean;
 declare function openAuthPanel(register?: boolean): void;

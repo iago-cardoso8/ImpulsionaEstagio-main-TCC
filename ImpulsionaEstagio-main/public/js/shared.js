@@ -17,3 +17,11 @@ function getInputValue(id) {
 function getTextValue(id) {
     return getElement(id)?.value.trim() ?? '';
 }
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}

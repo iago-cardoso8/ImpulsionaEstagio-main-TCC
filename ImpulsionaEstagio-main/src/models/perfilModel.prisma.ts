@@ -12,8 +12,8 @@ const prisma = new PrismaClient({
 export interface CreatePerfilInput {
   name: string;
   email: string;
-  course: string;
-  campus: string;
+  course?: string;
+  campus?: string;
   usuarioId: number;
   status?: string;
   availability?: string;
@@ -76,8 +76,8 @@ async function create(data: CreatePerfilInput): Promise<PerfilResponse | null> {
       data: {
         name: data.name,
         email: data.email,
-        course: data.course,
-        campus: data.campus,
+        course: data.course ?? '',
+        campus: data.campus ?? '',
         usuarioId: data.usuarioId,
         status: data.status || '',
         availability: data.availability || '',

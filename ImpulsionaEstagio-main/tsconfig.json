@@ -23,6 +23,7 @@
   },
   "include": [
     "src/**/*",
+    "prisma/seed.ts",
     "server.ts"
   ],
   "exclude": [

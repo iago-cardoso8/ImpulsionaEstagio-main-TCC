@@ -6,10 +6,9 @@ node_modules/
 .env.local
 .env.*.local
 
-# Banco de dados SQLite
-src/database/db.sqlite
-src/database/db.sqlite-shm
-src/database/db.sqlite-wal
+# Banco de dados SQLite local
+prisma/*.db
+prisma/*.db-journal
 
 # Logs
 logs/
@@ -34,5 +33,3 @@ build/
 # OS
 Thumbs.db
 .DS_Store
-
-/generated/prisma

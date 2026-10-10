@@ -165,6 +165,9 @@ function validateJobPayload(payload) {
 function resetFormState() {
     if (editJobIdInput)
         editJobIdInput.value = '';
+    const companyInput = getInputElement('regCompany');
+    if (companyInput)
+        companyInput.value = authenticatedUser?.role === 'company' ? authenticatedUser.name : '';
     if (cancelEditBtn)
         cancelEditBtn.style.display = 'none';
     if (form) {
@@ -272,7 +275,14 @@ function cancelEdit() {
 }
 form?.addEventListener('submit', submitJobForm);
 cancelEditBtn?.addEventListener('click', cancelEdit);
-window.startJobEdit = startJobEdit;
-window.deleteJob = deleteJob;
+getInputElement('jobSearch')?.addEventListener('input', handleSearch);
+document.querySelectorAll('nav a[data-view]').forEach(link => {
+    link.addEventListener('click', event => {
+        event.preventDefault();
+        const viewName = link.dataset.view;
+        if (viewName)
+            switchView(viewName);
+    });
+});
 // Iniciar a tela carregando as vagas da API
 carregarVagas();

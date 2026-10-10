@@ -30,7 +30,3 @@ function escapeHtml(value: string): string {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
-
-declare function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
-declare function isAuthenticated(): boolean;
-declare function openAuthPanel(register?: boolean): void;

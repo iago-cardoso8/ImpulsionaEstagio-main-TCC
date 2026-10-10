@@ -1,6 +1,32 @@
 "use strict";
 let profileData = null;
 let notificationsList = [];
+function resetApplicationUserState() {
+    profileData = null;
+    notificationsList = [];
+    savedJobs = readSavedJobs();
+    const form = getElement('profileForm');
+    form?.reset();
+    const name = getElement('profileDisplayName');
+    if (name)
+        name.textContent = 'Visitante';
+    const roleLine = getElement('profileRoleLine');
+    if (roleLine)
+        roleLine.textContent = 'Entre para acessar seu perfil';
+    const campusLine = getElement('profileCampusLine');
+    if (campusLine)
+        campusLine.textContent = '';
+    const notificationCount = getElement('notification-count');
+    if (notificationCount)
+        notificationCount.textContent = '0';
+    const notificationList = getElement('notification-list');
+    if (notificationList)
+        notificationList.textContent = '';
+    const jobDetails = getElement('job-details');
+    if (jobDetails)
+        jobDetails.innerHTML = '<p>Selecione uma vaga para ver os detalhes completos.</p>';
+    renderJobs();
+}
 function formatJobTime(job) {
     const publishedAt = job.createdAt ? new Date(job.createdAt).getTime() : Number.NaN;
     if (!Number.isFinite(publishedAt))
@@ -63,6 +89,8 @@ function switchView(viewName) {
     const navNotifications = getElement('nav-notifications');
     const viewProfileContainer = getElement('view-profile-container');
     const navPerfil = getElement('nav-perfil');
+    const viewApplications = getElement('view-applications-container');
+    const navApplications = getElement('nav-applications');
     if (viewName === 'jobs') {
         viewJobsContainer?.classList.add('active-view');
         navVagas?.classList.add('active');
@@ -81,6 +109,10 @@ function switchView(viewName) {
         navCadastro?.classList.add('active');
     }
     else if (viewName === 'notifications') {
+        if (!isCompanyUser()) {
+            openAuthPanel();
+            return;
+        }
         viewNotificationsContainer?.classList.add('active-view');
         navNotifications?.classList.add('active');
         fetchNotifications().then(() => renderNotifications());
@@ -97,6 +129,15 @@ function switchView(viewName) {
                 fillProfileForm(data);
             renderProfile();
         });
+    }
+    else if (viewName === 'applications') {
+        if (!isAuthenticated() || isCompanyUser()) {
+            openAuthPanel();
+            return;
+        }
+        viewApplications?.classList.add('active-view');
+        navApplications?.classList.add('active');
+        void fetchMyApplications();
     }
 }
 async function fetchProfile() {
@@ -118,12 +159,15 @@ async function fetchProfile() {
 }
 async function fetchNotifications() {
     try {
-        const response = await fetch('/api/notificacoes');
+        const response = await authFetch('/api/notificacoes');
         if (!response.ok)
             throw new Error('Erro ao carregar notificações');
         const result = await response.json();
         if (result.sucesso && result.dados) {
             notificationsList = result.dados;
+            const notificationCount = getElement('notification-count');
+            if (notificationCount)
+                notificationCount.textContent = String(notificationsList.length);
             return notificationsList;
         }
         return [];
@@ -164,8 +208,8 @@ function showDetails(job) {
         ? job.benefits.map((b) => `<li>${escapeHtml(b)}</li>`).join("")
         : job.benefits ? `<li>${escapeHtml(String(job.benefits))}</li>` : '<li>Nenhum benefício listado</li>';
     const managementActions = canManageJob(job.usuarioId)
-        ? `<button class="btn-action" onclick="startJobEdit(${job.id})">Editar</button>
-                <button class="btn-action btn-delete" onclick="deleteJob(${job.id})">Excluir</button>`
+        ? `<button class="btn-action" id="editJobButton">Editar</button>
+                <button class="btn-action btn-delete" id="deleteJobButton">Excluir</button>`
         : '';
     const jobDetails = getElement('job-details');
     if (!jobDetails)
@@ -182,7 +226,7 @@ function showDetails(job) {
         </div>
         <div class="detail-actions">
                     ${managementActions}
-          <button class="btn-save ${isSaved ? 'saved' : ''}" onclick="toggleSave(${job.id})">
+          <button class="btn-save ${isSaved ? 'saved' : ''}" id="toggleSaveButton">
             ${isSaved ? '♥ Salvo' : '♡ Salvar Vaga'}
           </button>
         </div>
@@ -203,8 +247,93 @@ function showDetails(job) {
         <h4>Benefícios</h4>
         <ul>${benList}</ul>
       </div>
+      ${authenticatedUser?.role === 'student' ? '<button class="btn-register" id="applyJobBtn">Candidatar-se</button>' : ''}
+      ${canManageJob(job.usuarioId) ? '<button class="btn-secondary" id="showApplicantsBtn">Ver candidaturas</button><div id="applicants-list"></div>' : ''}
     </div>
   `;
+    getElement('applyJobBtn')?.addEventListener('click', () => void applyToJob(job.id));
+    getElement('showApplicantsBtn')?.addEventListener('click', () => void fetchJobApplications(job.id));
+    getElement('editJobButton')?.addEventListener('click', () => void startJobEdit(job.id));
+    getElement('deleteJobButton')?.addEventListener('click', () => void deleteJob(job.id));
+    getElement('toggleSaveButton')?.addEventListener('click', () => toggleSave(job.id));
+}
+async function applyToJob(jobId) {
+    try {
+        const response = await authFetch(`/api/vagas/${jobId}/candidaturas`, { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) {
+            alert(result.erro || 'Não foi possível enviar a candidatura.');
+            return;
+        }
+        alert('Candidatura enviada com sucesso.');
+    }
+    catch (error) {
+        console.error('Erro ao se candidatar:', error);
+        alert('Não foi possível conectar ao servidor.');
+    }
+}
+async function fetchMyApplications() {
+    const container = getElement('my-applications-list');
+    if (!container)
+        return;
+    try {
+        const response = await authFetch('/api/candidaturas/minhas');
+        const result = await response.json();
+        if (!response.ok)
+            throw new Error(result.erro || 'Falha ao carregar candidaturas');
+        const applications = result.dados || [];
+        container.innerHTML = applications.length ? applications.map(application => `
+          <article class="notification-card">
+            <strong>${escapeHtml(application.vaga.title)}</strong>
+            <p>${escapeHtml(application.vaga.company)} · ${escapeHtml(application.vaga.location)}</p>
+            <p>Status: ${escapeHtml(application.status)}</p>
+          </article>
+        `).join('') : '<p>Você ainda não se candidatou a nenhuma vaga.</p>';
+    }
+    catch (error) {
+        console.error(error);
+        container.textContent = 'Não foi possível carregar suas candidaturas.';
+    }
+}
+async function fetchJobApplications(jobId) {
+    const container = getElement('applicants-list');
+    if (!container)
+        return;
+    try {
+        const response = await authFetch(`/api/vagas/${jobId}/candidaturas`);
+        const result = await response.json();
+        if (!response.ok)
+            throw new Error(result.erro || 'Falha ao carregar candidaturas');
+        const applications = result.dados || [];
+        container.innerHTML = applications.length ? applications.map(application => `
+          <article class="notification-card">
+            <strong>${escapeHtml(application.usuario?.name || 'Estudante')}</strong>
+            <p>${escapeHtml(application.usuario?.email || '')}</p>
+            <label for="application-status-${application.id}">Status</label>
+            <select id="application-status-${application.id}" data-application-id="${application.id}">
+              ${['Pendente', 'Aceito', 'Rejeitado'].map(status => `<option ${status === application.status ? 'selected' : ''}>${status}</option>`).join('')}
+            </select>
+          </article>
+        `).join('') : '<p>Nenhuma candidatura para esta vaga.</p>';
+        container.querySelectorAll('select[data-application-id]').forEach(select => {
+            select.addEventListener('change', () => void updateApplicationStatus(Number(select.dataset.applicationId), select.value));
+        });
+    }
+    catch (error) {
+        console.error(error);
+        container.textContent = 'Não foi possível carregar as candidaturas.';
+    }
+}
+async function updateApplicationStatus(id, status) {
+    const response = await authFetch(`/api/candidaturas/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+    });
+    if (!response.ok) {
+        const result = await response.json();
+        alert(result.erro || 'Não foi possível atualizar o status.');
+    }
 }
 function toggleSave(jobId) {
     if (savedJobs.includes(jobId)) {
@@ -213,7 +342,7 @@ function toggleSave(jobId) {
     else {
         savedJobs.push(jobId);
     }
-    localStorage.setItem("ifpb_saved", JSON.stringify(savedJobs));
+    localStorage.setItem(savedJobsStorageKey(), JSON.stringify(savedJobs));
     renderJobs();
     const job = jobs.find(j => j.id === jobId);
     if (job)
@@ -315,6 +444,7 @@ function renderJobs() {
     if (!listContainer)
         return;
     listContainer.innerHTML = "";
+    renderCityFilters();
     const cidadesMarcadas = Array.from(document.querySelectorAll('.cb-filtro[data-tipo="cidade"]:checked')).map(cb => cb.value);
     const cursosMarcados = Array.from(document.querySelectorAll('.cb-filtro[data-tipo="curso"]:checked')).map(cb => cb.value);
     const empresasMarcadas = Array.from(document.querySelectorAll('.cb-filtro[data-tipo="empresa"]:checked')).map(cb => cb.value);
@@ -331,8 +461,12 @@ function renderJobs() {
             empresasMarcadas.some(empresa => job.company.includes(empresa));
         let matchRemun = true;
         if (remunMarcadas.length > 0) {
-            const valorSalario = parseFloat(job.salary.replace(/[^\d,]/g, '').replace(',', '.'));
+            const valorSalario = job.salary.toLowerCase().includes('a combinar')
+                ? Number.NaN
+                : parseFloat(job.salary.replace(/[^\d,]/g, '').replace(',', '.'));
             matchRemun = remunMarcadas.some(opcao => {
+                if (!Number.isFinite(valorSalario))
+                    return false;
                 if (opcao === 'ate_800')
                     return valorSalario <= 800;
                 if (opcao === 'acima_800')
@@ -369,7 +503,7 @@ function renderJobs() {
         const card = document.createElement("div");
         card.className = "job-card";
         card.id = `card-${job.id}`;
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=2d9669&color=fff`;
+        const avatarUrl = '/img/logo_impulsiona.png';
         card.innerHTML = `
       <img src="${avatarUrl}" alt="Logo">
       <div class="job-card-info">
@@ -392,4 +526,14 @@ function renderJobs() {
     const countLabel = getElement('count-label');
     if (countLabel)
         countLabel.innerText = `${filtered.length} vagas encontradas`;
+}
+function renderCityFilters() {
+    const options = getElement('city-filter-options');
+    if (!options)
+        return;
+    const selected = new Set(Array.from(options.querySelectorAll('input:checked')).map(input => input.value));
+    const cities = Array.from(new Set(jobs.map(job => job.location.split(' - ')[0].trim()).filter(Boolean))).sort();
+    options.innerHTML = cities.map(city => `
+      <label><input type="checkbox" class="cb-filtro" data-tipo="cidade" value="${escapeHtml(city)}" ${selected.has(city) ? 'checked' : ''}> ${escapeHtml(city)}</label>
+    `).join('');
 }

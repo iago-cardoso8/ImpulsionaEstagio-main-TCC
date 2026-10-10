@@ -53,16 +53,8 @@ header {
 .auth-close { position: absolute; top: 10px; right: 14px; border: 0; background: transparent; font-size: 26px; cursor: pointer; }
 .auth-link { margin-top: 16px; border: 0; background: transparent; color: var(--dark-green); cursor: pointer; text-decoration: underline; }
 .hidden { display: none !important; }
-
-/* Role selection panel */
-.role-select-panel { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0,0,0,0.45); }
-.role-box { background: #fff; padding: 28px; border-radius: 10px; width: min(520px, calc(100% - 40px)); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); transform: translateY(-6px); transition: transform .18s ease, opacity .18s ease; }
-.role-select-panel .role-box { transform: translateY(0); }
-.role-box h2 { margin: 0 0 16px; color: var(--dark-green); }
-.role-actions { display:flex; gap:16px; justify-content:center; margin-bottom: 12px; }
-.btn-role { padding: 14px 26px; border-radius: 10px; border: 1px solid #ddd; background: #f7faf9; cursor: pointer; font-weight: 800; font-size: 1.05rem; }
-.btn-role.btn-primary { background: var(--primary-green); color: #fff; border-color: var(--primary-green); }
-.role-hint { color:#666; margin-top:8px; font-size:0.9rem; }
+#authRoleField { border: 0; padding: 0; }
+#authRoleField legend { margin-bottom: 8px; }
 
 .role-badge { display:inline-block; margin-left:8px; padding:3px 8px; border-radius:12px; background:#eef6f0; color:var(--dark-green); font-weight:700; font-size:0.85rem; }
 .role-badge.hidden { display:none !important; }

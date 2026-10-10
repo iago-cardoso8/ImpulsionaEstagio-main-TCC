@@ -11,14 +11,15 @@
     <div class="logo-area">
       <img src="img/logo_impulsiona.png" alt="Impulsiona Estágios IFPB" class="main-logo" />
       <div class="header-search">
-        <input type="text" id="jobSearch" placeholder="Pesquisar vagas" onkeyup="handleSearch()">
+        <input type="text" id="jobSearch" placeholder="Pesquisar vagas">
       </div>
       <nav>
         <ul>
-          <li><a onclick="switchView('jobs')" id="nav-vagas" class="active">Vagas de Estágio</a></li>
-          <li><a onclick="switchView('register')" id="nav-cadastro" class="company-only hidden">Cadastro de Vagas</a></li>
-          <li><a onclick="switchView('notifications')" id="nav-notifications">Notificações</a></li>
-          <li><a onclick="switchView('profile')" id="nav-perfil">Meu Perfil</a></li>
+          <li><a href="#vagas" data-view="jobs" id="nav-vagas" class="active">Vagas de Estágio</a></li>
+          <li><a href="#cadastro" data-view="register" id="nav-cadastro" class="company-only hidden">Cadastro de Vagas</a></li>
+          <li><a href="#notificacoes" data-view="notifications" id="nav-notifications" class="company-only hidden">Notificações</a></li>
+          <li><a href="#perfil" data-view="profile" id="nav-perfil">Meu Perfil</a></li>
+          <li><a href="#candidaturas" data-view="applications" id="nav-applications" class="student-only hidden">Minhas candidaturas</a></li>
         </ul>
       </nav>
       <div class="auth-area">
@@ -34,13 +35,13 @@
       <button id="authCloseBtn" class="auth-close" type="button" aria-label="Fechar">&times;</button>
       <h2 id="authTitle">Entrar</h2>
       <form id="authForm">
-        <div id="authRoleField" class="hidden">
-          <label>Sou:</label>
+        <fieldset id="authRoleField" class="hidden">
+          <legend>Sou:</legend>
           <div>
-            <label><input type="radio" name="authRole" value="student" checked> Aluno</label>
+            <label><input id="authRoleStudent" type="radio" name="authRole" value="student" checked> Aluno</label>
             <label><input type="radio" name="authRole" value="company"> Empresa</label>
           </div>
-        </div>
+        </fieldset>
         <div id="authNameField" class="hidden"><label for="authName">Nome completo</label><input id="authName" type="text" minlength="2" autocomplete="name"></div>
         <div id="authCourseField" class="hidden"><label for="authCourse">Curso (IF)</label><select id="authCourse">
             <option value="">Selecione o curso</option>
@@ -68,30 +69,13 @@
     </div>
   </section>
 
-  <!-- Painel de seleção inicial: Aluno ou Empresa -->
-  <section id="role-select-panel" class="role-select-panel hidden">
-    <div class="role-box">
-      <h2>Você é:</h2>
-        <div class="role-actions">
-        <button id="choose-student" class="btn-role">🎓 Aluno</button>
-        <button id="choose-company" class="btn-role btn-primary">🏢 Empresa</button>
-      </div>
-      <p class="role-hint">Escolha seu tipo para personalizar a experiência antes de entrar.</p>
-      <button id="role-close" class="auth-close" type="button" aria-label="Fechar">&times;</button>
-    </div>
-  </section>
-
   <main>
     <div id="view-jobs-container" class="view-section active-view">
       <div class="multi-filters-bar">
         <div class="filtro-container">
           <button class="btn-gatilho" data-alvo="dropdown-cidade">Cidade ▾</button>
           <div id="dropdown-cidade" class="dropdown-menu escondido">
-            <div class="opcoes">
-              <label><input type="checkbox" class="cb-filtro" data-tipo="cidade" value="João Pessoa"> João Pessoa</label>
-              <label><input type="checkbox" class="cb-filtro" data-tipo="cidade" value="Cabedelo"> Cabedelo</label>
-              <label><input type="checkbox" class="cb-filtro" data-tipo="cidade" value="Campina Grande"> Campina Grande</label>
-              <label><input type="checkbox" class="cb-filtro" data-tipo="cidade" value="Cajazeiras"> Cajazeiras</label>
+            <div class="opcoes" id="city-filter-options">
             </div>
             <button class="btn-acao btn-aplicar-filtro">Aplicar Filtro</button>
           </div>
@@ -159,8 +143,7 @@
             <div class="avatar-circle">E</div>
           </div>
           <div class="card-body">
-            <h3>Empresa X</h3>
-            <p>João Pessoa, Paraíba, Brasil.</p>
+            <h3 id="companyDisplayName"></h3>
           </div>
         </div>
       </aside>
@@ -174,11 +157,11 @@
             <span class="section-label">Dados da Empresa</span>
             <div class="form-row">
               <div class="col-half">
-                <label>Nome da Empresa</label>
-                <input type="text" id="regCompany" placeholder="Ex: Tech Solutions LTDA" required>
+                <label for="regCompany">Nome da Empresa</label>
+                <input type="text" id="regCompany" placeholder="Nome da empresa" required readonly>
               </div>
               <div class="col-half">
-                <label>E-mail de Contato</label>
+                <label for="regEmail">E-mail de Contato</label>
                 <input type="email" id="regEmail" placeholder="empresa@email.com" required>
               </div>
             </div>
@@ -186,11 +169,11 @@
             <span class="section-label">Dados da Vaga</span>
             <div class="form-row">
               <div class="col-half">
-                <label>Título da Vaga</label>
+                <label for="regTitle">Título da Vaga</label>
                 <input type="text" id="regTitle" placeholder="Ex: Estágio em TI" required>
               </div>
               <div class="col-half">
-                <label>Área de Atuação</label>
+                <label for="regTarget">Área de Atuação</label>
                 <select id="regTarget">
                   <option value="Informática">Informática</option>
                   <option value="Mecânica">Mecânica</option>
@@ -202,7 +185,7 @@
 
             <div class="form-row">
               <div class="col-half">
-                <label>UF</label>
+                <label for="regState">UF</label>
                 <select id="regState" required>
                   <option value="" disabled selected>Selecione o estado</option>
                   <option value="AC">AC</option>
@@ -235,7 +218,7 @@
                 </select>
               </div>
               <div class="col-half">
-                <label>Cidade</label>
+                <label for="regCity">Cidade</label>
                 <input list="regCityList" id="regCity" placeholder="Escolha ou digite a cidade" required disabled>
                 <datalist id="regCityList"></datalist>
               </div>
@@ -243,25 +226,25 @@
 
             <div class="form-row">
               <div class="col-half">
-                <label>Bolsa (R$)</label>
+                <label for="regSalary">Bolsa (R$)</label>
                 <input type="number" id="regSalary" placeholder="Ex: 800" required>
               </div>
             </div>
 
             <div class="form-row">
               <div class="col-half">
-                <label>Descrição da Vaga</label>
+                <label for="regDesc">Descrição da Vaga</label>
                 <textarea id="regDesc" placeholder="Descreva as atividades"></textarea>
               </div>
               <div class="col-half">
-                <label>Requisitos</label>
+                <label for="regReq">Requisitos</label>
                 <textarea id="regReq" placeholder="Ex: Conhecimentos básicos"></textarea>
               </div>
             </div>
 
             <div class="form-row">
               <div class="col-full">
-                <label>Benefícios (uma linha por item)</label>
+                <label for="regBenefits">Benefícios (uma linha por item)</label>
                 <textarea id="regBenefits" placeholder="Ex: Vale Transporte, Refeitório"></textarea>
               </div>
             </div>
@@ -285,6 +268,13 @@
       </section>
     </div>
 
+    <div id="view-applications-container" class="view-section">
+      <section class="notifications-view">
+        <h2 class="page-title">Minhas candidaturas</h2>
+        <div id="my-applications-list" class="notification-list"></div>
+      </section>
+    </div>
+
     <div id="view-profile-container" class="view-section">
       <div class="profile-grid">
         <aside class="profile-sidebar">
@@ -293,9 +283,9 @@
               <div class="avatar-circle" id="profileAvatar">A</div>
             </div>
             <div class="card-body">
-              <h3 id="profileDisplayName">Ana Silva</h3>
-              <p id="profileRoleLine">Estudante de Informática</p>
-              <p id="profileCampusLine">IFPB - Campus João Pessoa</p>
+              <h3 id="profileDisplayName">Visitante</h3>
+              <p id="profileRoleLine"></p>
+              <p id="profileCampusLine"></p>
             </div>
           </div>
 
@@ -305,7 +295,7 @@
               <span class="stat-label">Vagas salvas</span>
             </div>
             <div class="stat-card">
-              <span class="stat-value">5</span>
+              <span class="stat-value" id="notification-count">0</span>
               <span class="stat-label">Notificações</span>
             </div>
           </div>
@@ -319,21 +309,21 @@
               <span class="section-label">Dados Pessoais</span>
               <div class="profile-row">
                 <div class="profile-field">
-                  <label>Nome completo</label>
+                  <label for="profileName">Nome completo</label>
                   <input id="profileName" type="text" required>
                 </div>
                 <div class="profile-field">
-                  <label>E-mail</label>
+                  <label for="profileEmail">E-mail</label>
                   <input id="profileEmail" type="email" required>
                 </div>
               </div>
               <div class="profile-row">
                 <div class="profile-field">
-                  <label>Curso</label>
+                  <label for="profileCourse">Curso</label>
                   <input id="profileCourse" type="text" required>
                 </div>
                 <div class="profile-field">
-                  <label>Campus</label>
+                  <label for="profileCampus">Campus</label>
                   <input id="profileCampus" type="text" required>
                 </div>
               </div>
@@ -343,11 +333,11 @@
               <span class="section-label">Preferências</span>
               <div class="profile-row">
                 <div class="profile-field">
-                  <label>Status</label>
+                  <label for="profileStatus">Status</label>
                   <input id="profileStatus" type="text">
                 </div>
                 <div class="profile-field">
-                  <label>Disponibilidade</label>
+                  <label for="profileAvailability">Disponibilidade</label>
                   <input id="profileAvailability" type="text">
                 </div>
               </div>

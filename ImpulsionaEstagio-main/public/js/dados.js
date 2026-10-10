@@ -1,10 +1,21 @@
 "use strict";
 let jobs = [];
-const savedJobsFromStorage = localStorage.getItem("ifpb_saved");
-let savedJobs = [];
-try {
-    savedJobs = savedJobsFromStorage ? JSON.parse(savedJobsFromStorage) : [];
+function savedJobsStorageKey() {
+    try {
+        const user = JSON.parse(localStorage.getItem('impulsiona_user') || 'null');
+        return user?.id ? `ifpb_saved:${user.id}` : 'ifpb_saved:anonymous';
+    }
+    catch {
+        return 'ifpb_saved:anonymous';
+    }
 }
-catch {
-    savedJobs = [];
+function readSavedJobs() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(savedJobsStorageKey()) || '[]');
+        return Array.isArray(saved) && saved.every(Number.isInteger) ? saved : [];
+    }
+    catch {
+        return [];
+    }
 }
+let savedJobs = readSavedJobs();

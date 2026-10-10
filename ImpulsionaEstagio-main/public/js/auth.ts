@@ -49,6 +49,7 @@ function setAuthState(user: AuthUser | null, token?: string) {
     if (token) localStorage.setItem('impulsiona_token', token);
     if (user) localStorage.setItem('impulsiona_user', JSON.stringify(user));
     else localStorage.removeItem('impulsiona_user');
+    resetApplicationUserState();
     const label = document.getElementById('authUserLabel');
     const action = document.getElementById('authActionBtn');
     if (label) label.textContent = user ? `Olá, ${user.name}` : 'Visitante';
@@ -61,6 +62,9 @@ function setAuthState(user: AuthUser | null, token?: string) {
     document.querySelectorAll<HTMLElement>('.company-only').forEach(element => {
         element.classList.toggle('hidden', user?.role !== 'company');
     });
+    document.querySelectorAll<HTMLElement>('.student-only').forEach(element => {
+        element.classList.toggle('hidden', user?.role !== 'student');
+    });
     const profileName = document.getElementById('profileDisplayName');
     const profileAvatar = document.getElementById('profileAvatar');
     const profileRoleLine = document.getElementById('profileRoleLine');
@@ -69,8 +73,12 @@ function setAuthState(user: AuthUser | null, token?: string) {
     if (profileAvatar) profileAvatar.textContent = user?.name?.charAt(0).toUpperCase() || '?';
     if (profileRoleLine) profileRoleLine.textContent = user?.role === 'company' ? 'Perfil empresarial' : user ? 'Estudante' : 'Entre para acessar seu perfil';
     if (profileCampusLine) profileCampusLine.textContent = user?.role === 'company'
-        ? 'Empresa cadastrada'
+        ? ''
         : user?.campus ? `IFPB - Campus ${user.campus}` : '';
+    const companyNameInput = document.getElementById('regCompany') as HTMLInputElement | null;
+    if (companyNameInput) companyNameInput.value = user?.role === 'company' ? user.name : '';
+    const companyDisplayName = document.getElementById('companyDisplayName');
+    if (companyDisplayName) companyDisplayName.textContent = user?.role === 'company' ? user.name : '';
     const courseField = document.getElementById('profileCourse')?.closest<HTMLElement>('.profile-field');
     const campusField = document.getElementById('profileCampus')?.closest<HTMLElement>('.profile-field');
     const isStudent = !user || user.role === 'student';
@@ -161,19 +169,6 @@ document.querySelectorAll<HTMLInputElement>('input[name="authRole"]').forEach(in
         localStorage.setItem('impulsiona_role_choice', input.value);
         updateRegistrationFields(input.value);
     });
-});
-document.getElementById('choose-student')?.addEventListener('click', () => {
-    document.getElementById('role-select-panel')?.classList.add('hidden');
-    localStorage.setItem('impulsiona_role_choice', 'student');
-    openAuthPanel(true, 'student');
-});
-document.getElementById('choose-company')?.addEventListener('click', () => {
-    document.getElementById('role-select-panel')?.classList.add('hidden');
-    localStorage.setItem('impulsiona_role_choice', 'company');
-    openAuthPanel(true, 'company');
-});
-document.getElementById('role-close')?.addEventListener('click', () => {
-    document.getElementById('role-select-panel')?.classList.add('hidden');
 });
 document.getElementById('togglePasswordBtn')?.addEventListener('click', () => {
     const password = document.getElementById('authPassword') as HTMLInputElement;

@@ -30,6 +30,14 @@ interface NotificationItem {
   time: string;
 }
 
+interface ApplicationItem {
+  id: number;
+  status: string;
+  appliedAt: string;
+  vaga: Job;
+  usuario?: { name: string; email: string };
+}
+
 interface ApiResponse<T> {
   sucesso: boolean;
   quantidade?: number;
@@ -40,13 +48,4 @@ interface ApiResponse<T> {
 
 interface Window {
   __ifCampiByUF?: Record<string, string[]>;
-  startJobEdit?: (id: number) => void;
-  deleteJob?: (id: number) => void;
 }
-
-declare function getElement<T extends HTMLElement>(id: string): T | null;
-declare function getInputElement(id: string): HTMLInputElement | null;
-declare function getSelectElement(id: string): HTMLSelectElement | null;
-declare function getDataListElement(id: string): HTMLDataListElement | null;
-declare function getInputValue(id: string): string;
-declare function getTextValue(id: string): string;

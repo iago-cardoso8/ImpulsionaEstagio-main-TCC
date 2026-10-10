@@ -14,9 +14,6 @@ function getDataListElement(id) {
 function getInputValue(id) {
     return getInputElement(id)?.value.trim() ?? '';
 }
-function getTextValue(id) {
-    return getElement(id)?.value.trim() ?? '';
-}
 function escapeHtml(value) {
     return value
         .replace(/&/g, '&amp;')

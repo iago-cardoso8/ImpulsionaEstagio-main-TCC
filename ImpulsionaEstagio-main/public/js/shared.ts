@@ -18,10 +18,6 @@ function getInputValue(id: string): string {
     return getInputElement(id)?.value.trim() ?? '';
 }
 
-function getTextValue(id: string): string {
-    return getElement<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(id)?.value.trim() ?? '';
-}
-
 function escapeHtml(value: string): string {
     return value
         .replace(/&/g, '&amp;')

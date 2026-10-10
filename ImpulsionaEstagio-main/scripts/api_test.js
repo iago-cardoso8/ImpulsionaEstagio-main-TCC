@@ -15,8 +15,6 @@ let companyToken;
 let otherCompanyToken;
 let studentToken;
 let companyId;
-let otherCompanyId;
-let studentId;
 let jobId;
 let candidatureId;
 let stderr = '';
@@ -110,11 +108,9 @@ test('Fluxos de autenticação, permissões, vagas, perfil, notificações e can
     result = await request('/api/auth/register', { method: 'POST', body: student });
     report('Registro de estudante', 201, result.response.status);
     studentToken = result.data.token;
-    studentId = result.data.usuario.id;
     result = await request('/api/auth/register', { method: 'POST', body: otherCompany });
     report('Registro da segunda empresa', 201, result.response.status);
     otherCompanyToken = result.data.token;
-    otherCompanyId = result.data.usuario.id;
   });
 
   await t.test('impede e-mail duplicado e login inválido', async () => {

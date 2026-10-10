@@ -61,7 +61,7 @@ npm test
 - `student`: pode manter seu perfil e candidatar-se a vagas; só consulta as próprias candidaturas.
 - `company`: pode gerenciar notificações e vagas; só altera/exclui vagas próprias e só consulta/altera candidaturas recebidas para suas vagas.
 - A listagem e a consulta de vagas são públicas.
-- As demais rotas protegidas recebem `Authorization: Bearer <token>`.
+- As demais rotas protegidas recebem um cabeçalho `Authorization` no esquema Bearer, contendo o JWT.
 
 ## Endpoints
 

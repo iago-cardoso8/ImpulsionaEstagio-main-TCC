@@ -331,7 +331,7 @@ CENÁRIO: Tentativa excedente de login | Esperado: 429 | Obtido: 429
 
 ## Verificação de instalação limpa e execução
 
-Foi feito clone local do commit `7b57a4d`, seguido de `npm install`, cópia de `.env.example`, geração de `JWT_SECRET` com `openssl rand -hex 32`, `npm run setup`, `npm run typecheck`, `npm run build:front`, `npm test` e `npm run dev`.
+Foi feito clone local do commit `013976a`, seguido de `npm install`, cópia de `.env.example`, geração de `JWT_SECRET` com `openssl rand -hex 32`, `npm run setup`, `npm run typecheck`, `npm run build:front`, `npm test` e `npm run dev`.
 
 Resultados observados no clone:
 

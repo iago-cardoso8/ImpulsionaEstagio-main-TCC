@@ -40,36 +40,13 @@ model Vaga {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Modelo: Candidato
-// Descrição: Representa um candidato que aplica para vagas
-// ─────────────────────────────────────────────────────────────
-model Candidato {
-  id            Int       @id @default(autoincrement())
-  name          String    // Nome do candidato
-  email         String    @unique // Email único
-  phone         String    // Telefone
-  location      String    // Localização
-  resume        String    @default("") // CV/Currículo
-  skills        String    @default("[]") // JSON array de skills
-  experience    String    @default("") // Experiência profissional
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  // Relacionamentos
-  candidaturas  Candidatura[]
-
-  @@map("candidatos")
-}
-
-// ─────────────────────────────────────────────────────────────
 // Modelo: Candidatura
-// Descrição: Relacionamento entre Vaga e Candidato
-// Representa a aplicação de um candidato em uma vaga
+// Descrição: Relacionamento entre Vaga e usuário estudante
 // ─────────────────────────────────────────────────────────────
 model Candidatura {
   id            Int       @id @default(autoincrement())
   vagaId        Int       @map("vaga_id")
-  candidatoId   Int       @map("candidato_id")
+  usuarioId     Int       @map("usuario_id")
   status        String    @default("Pendente") // Pendente, Aceito, Rejeitado
   coverLetter   String    @default("") @map("cover_letter") // Carta de apresentação
   appliedAt     DateTime  @default(now()) @map("applied_at")
@@ -77,10 +54,10 @@ model Candidatura {
 
   // Relacionamentos
   vaga          Vaga      @relation(fields: [vagaId], references: [id], onDelete: Cascade)
-  candidato     Candidato @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@map("candidaturas")
-  @@unique([vagaId, candidatoId]) // Um candidato não pode aplicar 2x na mesma vaga
+  @@unique([vagaId, usuarioId]) // Um estudante não pode se candidatar duas vezes à mesma vaga
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -115,6 +92,7 @@ model Usuario {
 
   perfil       Perfil?
   vagas        Vaga[]
+  candidaturas Candidatura[]
 
   @@map("usuarios")
 }

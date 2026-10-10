@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import 'dotenv/config';
 
 const prisma = new PrismaClient({
@@ -78,46 +79,62 @@ const seedNotificacoes = [
 ];
 
 async function main() {
-  console.log('🌱 Iniciando seed do banco de dados...\n');
+  const studentEmail = process.env.SEED_STUDENT_EMAIL || 'student.dev@example.com';
+  const studentPassword = process.env.SEED_STUDENT_PASSWORD || 'student-dev-only';
+  const companyEmail = process.env.SEED_COMPANY_EMAIL || 'company.dev@example.com';
+  const companyPassword = process.env.SEED_COMPANY_PASSWORD || 'company-dev-only';
+  const [studentPasswordHash, companyPasswordHash] = await Promise.all([
+    bcrypt.hash(studentPassword, 12),
+    bcrypt.hash(companyPassword, 12),
+  ]);
 
-  // Seed de vagas
-  const vagasCount = await prisma.vaga.count();
-  if (vagasCount === 0) {
-    for (const vaga of seedVagas) {
-      await prisma.vaga.create({
-        data: vaga,
-      });
-    }
-    console.log(`✅ ${seedVagas.length} vagas inseridas.`);
-  } else {
-    console.log(`⚠️  Vagas já existem (${vagasCount} registros). Pulando seed.`);
-  }
+  const student = await prisma.usuario.upsert({
+    where: { email: studentEmail },
+    update: { name: seedPerfil.name, passwordHash: studentPasswordHash, role: 'student' },
+    create: {
+      name: seedPerfil.name,
+      email: studentEmail,
+      passwordHash: studentPasswordHash,
+      role: 'student',
+    },
+  });
+  const company = await prisma.usuario.upsert({
+    where: { email: companyEmail },
+    update: { name: 'Empresa de Desenvolvimento', passwordHash: companyPasswordHash, role: 'company' },
+    create: {
+      name: 'Empresa de Desenvolvimento',
+      email: companyEmail,
+      passwordHash: companyPasswordHash,
+      role: 'company',
+    },
+  });
 
-  // Seed de perfil
-  const perfilCount = await prisma.perfil.count();
-  if (perfilCount === 0) {
-    await prisma.perfil.create({
-      data: seedPerfil,
+  await prisma.perfil.upsert({
+    where: { usuarioId: student.id },
+    update: { ...seedPerfil, email: student.email },
+    create: { ...seedPerfil, email: student.email, usuarioId: student.id },
+  });
+
+  for (const seedVaga of seedVagas) {
+    const vaga = { ...seedVaga, company: company.name, email: company.email, usuarioId: company.id };
+    const existing = await prisma.vaga.findFirst({
+      where: { title: vaga.title, usuarioId: company.id },
     });
-    console.log('✅ Perfil inicial inserido.');
-  } else {
-    console.log(`⚠️  Perfil já existe (${perfilCount} registros). Pulando seed.`);
-  }
-
-  // Seed de notificações
-  const notificacoesCount = await prisma.notification.count();
-  if (notificacoesCount === 0) {
-    for (const notificacao of seedNotificacoes) {
-      await prisma.notification.create({
-        data: notificacao,
-      });
+    if (existing) {
+      await prisma.vaga.update({ where: { id: existing.id }, data: vaga });
+    } else {
+      await prisma.vaga.create({ data: vaga });
     }
-    console.log(`✅ ${seedNotificacoes.length} notificações inseridas.`);
-  } else {
-    console.log(`⚠️  Notificações já existem (${notificacoesCount} registros). Pulando seed.`);
   }
 
-  console.log('\n✨ Seed concluído com sucesso!');
+  for (const notificacao of seedNotificacoes) {
+    const existing = await prisma.notification.findFirst({
+      where: { title: notificacao.title, message: notificacao.message },
+    });
+    if (!existing) await prisma.notification.create({ data: notificacao });
+  }
+
+  console.log('Seed concluído. Contas de desenvolvimento disponíveis conforme as variáveis SEED_* do ambiente.');
 }
 
 main()

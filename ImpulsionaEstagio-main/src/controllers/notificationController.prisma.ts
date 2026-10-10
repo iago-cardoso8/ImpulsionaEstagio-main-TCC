@@ -3,20 +3,13 @@ import * as NotificationService from '../models/notificationModel.prisma';
 import { requireAuth } from '../middleware/auth';
 
 const router: Router = express.Router();
-
+router.use(requireAuth);
 router.use((req, res, next): void => {
-  if (req.method === 'GET') {
-    next();
+  if (req.user?.role !== 'company') {
+    res.status(403).json({ sucesso: false, erro: 'Apenas empresas podem gerenciar notificações' });
     return;
   }
-
-  void requireAuth(req, res, () => {
-    if (req.user?.role !== 'company') {
-      res.status(403).json({ sucesso: false, erro: 'Apenas empresas podem gerenciar notificações' });
-      return;
-    }
-    next();
-  });
+  next();
 });
 
 interface ValidationError {

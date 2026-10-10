@@ -45,12 +45,6 @@ export interface PerfilResponse {
 // CRUD OPERATIONS
 // ──────────────────────────────────────────────────────────────
 
-async function findAll(): Promise<PerfilResponse[]> {
-  return await prisma.perfil.findMany({
-    orderBy: { updatedAt: 'desc' },
-  });
-}
-
 async function findById(id: number): Promise<PerfilResponse | null> {
   return await prisma.perfil.findUnique({
     where: { id },
@@ -61,13 +55,6 @@ async function findByUsuarioId(usuarioId: number): Promise<PerfilResponse | null
   return await prisma.perfil.findUnique({
     where: { usuarioId },
   });
-}
-
-async function findByEmail(email: string): Promise<PerfilResponse | null> {
-  const perfis = await prisma.perfil.findMany({
-    where: { email },
-  });
-  return perfis.length > 0 ? perfis[0] : null;
 }
 
 async function create(data: CreatePerfilInput): Promise<PerfilResponse | null> {
@@ -121,4 +108,4 @@ async function remove(id: number): Promise<PerfilResponse | null> {
   }
 }
 
-export { findAll, findById, findByUsuarioId, findByEmail, create, update, remove };
+export { findById, findByUsuarioId, create, update, remove };

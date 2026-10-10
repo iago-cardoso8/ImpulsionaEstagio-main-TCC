@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const jwtSecret = process.env.JWT_SECRET || '';
-if (!jwtSecret) {
-  throw new Error('JWT_SECRET não configurado');
+if (jwtSecret.length < 32 || jwtSecret === 'troque-por-uma-chave-secreta-forte' || jwtSecret === 'gere-uma-chave-com-openssl-rand-hex-32') {
+  throw new Error('JWT_SECRET deve ter pelo menos 32 caracteres e não pode ser o valor de exemplo.');
 }
 
 export interface AuthUser {
@@ -32,8 +32,20 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     return;
   }
 
+  let payload: jwt.JwtPayload;
   try {
-    const payload = jwt.verify(token, jwtSecret) as unknown as AuthUser;
+    const decoded = jwt.verify(token, jwtSecret);
+    if (typeof decoded === 'string' || typeof decoded.id !== 'number') {
+      res.status(401).json({ sucesso: false, erro: 'Token inválido ou expirado' });
+      return;
+    }
+    payload = decoded;
+  } catch {
+    res.status(401).json({ sucesso: false, erro: 'Token inválido ou expirado' });
+    return;
+  }
+
+  try {
     const user = await prisma.usuario.findUnique({ where: { id: payload.id } });
     if (!user) {
       res.status(401).json({ sucesso: false, erro: 'Usuário não encontrado' });
@@ -43,7 +55,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // include name for downstream authorization decisions
     if (user.name) req.user.name = user.name;
     next();
-  } catch {
-    res.status(401).json({ sucesso: false, erro: 'Token inválido ou expirado' });
+  } catch (error) {
+    next(error);
   }
 }

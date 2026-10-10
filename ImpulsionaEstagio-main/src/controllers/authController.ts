@@ -7,8 +7,8 @@ import { requireAuth } from '../middleware/auth';
 const router: Router = express.Router();
 const prisma = new PrismaClient();
 const jwtSecret = process.env.JWT_SECRET || '';
-if (!jwtSecret) {
-  throw new Error('JWT_SECRET não configurado');
+if (jwtSecret.length < 32 || jwtSecret === 'troque-por-uma-chave-secreta-forte' || jwtSecret === 'gere-uma-chave-com-openssl-rand-hex-32') {
+  throw new Error('JWT_SECRET deve ter pelo menos 32 caracteres e não pode ser o valor de exemplo.');
 }
 
 function publicUser(user: { id: number; name: string; email: string; role: string }, perfil?: { campus?: string | null } | null) {

@@ -139,13 +139,14 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const vaga = await VagasService.findById(parseInt(req.params.id as string, 10));
+    const id = parseInt(req.params.id, 10);
+    const vaga = await VagasService.findById(id);
 
     if (!vaga) {
       res.status(404).json({
         sucesso: false,
         erro: 'Vaga não encontrada',
-        id: parseInt(req.params.id as string, 10),
+        id,
       });
       return;
     }
@@ -180,8 +181,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     }
     const erroValidacao =
       validarCamposObrigatorios(req.body) ||
-      validarEmail(req.body.email as string) ||
-      validarSalary(req.body.salary as string);
+      validarEmail(req.body.email) ||
+      validarSalary(req.body.salary);
 
     if (erroValidacao) {
       res.status(erroValidacao.status).json(erroValidacao);
@@ -248,7 +249,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    const id = parseInt(req.params.id as string, 10);
+    const id = parseInt(req.params.id, 10);
     const vagaExistente = await VagasService.findById(id);
 
     if (!vagaExistente) {
@@ -301,7 +302,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const id = parseInt(req.params.id as string, 10);
+    const id = parseInt(req.params.id, 10);
     const vagaExistente = await VagasService.findById(id);
 
     if (!vagaExistente) {

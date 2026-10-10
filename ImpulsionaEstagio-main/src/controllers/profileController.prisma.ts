@@ -171,6 +171,22 @@ router.put('/', async (req: Request, res: Response): Promise<void> => {
     let perfilAtualizado;
 
     if (perfilExistente) {
+      const camposRequeridos = req.user?.role === 'company'
+        ? ['name', 'email']
+        : ['name', 'email', 'course', 'campus'];
+      const dadosFinais = { ...perfilExistente, ...req.body };
+      const faltantes = camposRequeridos.filter((campo) =>
+        !dadosFinais[campo] || String(dadosFinais[campo]).trim() === ''
+      );
+      if (faltantes.length > 0) {
+        res.status(400).json({ sucesso: false, erro: 'Campos obrigatórios ausentes', camposFaltantes: faltantes });
+        return;
+      }
+      const erroEmail = validarEmail(dadosFinais.email);
+      if (erroEmail) {
+        res.status(erroEmail.status).json(erroEmail);
+        return;
+      }
       perfilAtualizado = await PerfilService.update(perfilExistente.id, req.body);
     } else {
       // Não há perfil — validar campos obrigatórios e criar

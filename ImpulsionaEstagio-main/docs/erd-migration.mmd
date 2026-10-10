@@ -1,6 +1,18 @@
 erDiagram
-    VAGAS ||--o{ CANDIDATURAS : "tem"
-    CANDIDATOS ||--o{ CANDIDATURAS : "faz"
+    USUARIOS ||--o{ VAGAS : "publica"
+    USUARIOS ||--o| PERFIL : "possui"
+    USUARIOS ||--o{ CANDIDATURAS : "envia"
+    VAGAS ||--o{ CANDIDATURAS : "recebe"
+
+    USUARIOS {
+        int id PK
+        string name
+        string email UK
+        string password_hash
+        string role
+        datetime created_at
+        datetime updated_at
+    }
 
     VAGAS {
         int id PK
@@ -13,32 +25,10 @@ erDiagram
         string salary
         string target
         string desc
-        json requirements
-        json benefits
+        string requirements
+        string benefits
+        int usuario_id FK "nullable"
         datetime created_at
-        datetime updated_at
-    }
-
-    CANDIDATOS {
-        int id PK
-        string name
-        string email UK
-        string phone
-        string location
-        string resume
-        json skills
-        string experience
-        datetime created_at
-        datetime updated_at
-    }
-
-    CANDIDATURAS {
-        int id PK
-        int vaga_id FK
-        int candidato_id FK
-        string status
-        string cover_letter
-        datetime applied_at
         datetime updated_at
     }
 
@@ -50,8 +40,20 @@ erDiagram
         string campus
         string status
         string availability
+        int usuario_id FK "unique, nullable"
         datetime created_at
         datetime updated_at
+    }
+
+    CANDIDATURAS {
+        int id PK
+        int vaga_id FK
+        int usuario_id FK
+        string status
+        string cover_letter
+        datetime applied_at
+        datetime updated_at
+        string unique_vaga_usuario "vaga_id + usuario_id"
     }
 
     NOTIFICATIONS {

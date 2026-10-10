@@ -1,88 +1,126 @@
 # Impulsiona Estágio
 
-Aplicação web de oportunidades de estágio integrada ao back-end em Node.js/Express.js com Prisma ORM e SQLite.
+Aplicação web para divulgação de vagas de estágio, gestão de candidaturas e perfis de estudantes. O sistema usa Node.js, Express 4, TypeScript, Prisma 5 e SQLite; a interface é HTML/CSS com TypeScript compilado para JavaScript em `public/js`.
 
-## O que foi implementado
+## Funcionalidades existentes
 
-- Modelagem do banco de dados com Prisma e schema no arquivo prisma/schema.prisma
-- Arquitetura MVC com separação entre models, controllers e rotas
-- Operações CRUD para vagas, perfil e notificações
-- Migrations e seed para criação e população inicial do banco
-- Interface web com criação, listagem, edição e remoção de vagas
-- Testes de API via REST Client no arquivo requests.http
-- Autenticação com bcrypt, JWT, middleware e rotas protegidas
+- Cadastro e autenticação de estudantes (`student`) e empresas (`company`).
+- Senhas armazenadas com bcrypt, fator 12; JWT com validade de duas horas.
+- Consulta pública de vagas; empresas cadastradas publicam, alteram e removem somente as próprias vagas.
+- Perfil associado ao usuário autenticado.
+- Candidaturas de estudantes a vagas, consulta das próprias candidaturas e gestão de status pela empresa proprietária.
+- Gestão de notificações somente por empresas autenticadas.
+- Interface web para vagas, perfis, candidaturas e notificações de empresas.
 
-## Estrutura principal
+O campo `Vaga.time` é mantido no banco por compatibilidade. A interface calcula e exibe o tempo relativo com base em `createdAt`.
 
-- server.ts: configuração do Express, middlewares, rotas e health check
-- src/controllers: controllers responsáveis por receber requisições HTTP e responder
-- src/models: camada de acesso ao banco com Prisma Client
-- prisma/schema.prisma: definição dos modelos e relacionamentos
-- prisma/seed.ts: dados iniciais para desenvolvimento e testes
-- public: interface web em HTML/CSS/TypeScript
+## Requisitos e configuração
 
-## Modelagem do banco de dados
-
-O schema define os modelos:
-
-- Vaga: representa oportunidades de estágio e emprego
-- Candidato: representa candidatos que se inscrevem
-- Candidatura: relaciona vagas e candidatos
-- Perfil: armazena dados do usuário/perfil do estudante
-- Notification: representa notificações do sistema
-
-O relacionamento principal é entre Vaga e Candidatura, onde uma vaga pode ter várias candidaturas e cada candidatura pertence a uma vaga e a um candidato.
-
-O diagrama ERD está em docs/erd-migration.mmd.
-
-## Arquitetura MVC
-
-- Model: arquivos em src/models executam operações CRUD com Prisma Client
-- Controller: arquivos em src/controllers recebem dados, validam entradas e retornam respostas HTTP
-- Rotas: definidas em server.ts e nos controllers via Express Router
-
-## Migrations e seed
-
-Para criar e aplicar a estrutura do banco:
-
-```bash
-npx prisma migrate dev --name init
-npm run seed
-```
-
-Os arquivos de migration ficam em prisma/migrations e o seed em prisma/seed.ts.
-
-## Executando a aplicação
+- Node.js 20 ou superior.
+- npm.
+- OpenSSL para gerar o segredo JWT (ou outro gerador criptograficamente seguro).
 
 ```bash
 npm install
 cp .env.example .env
-npx prisma migrate dev
+openssl rand -hex 32
+```
+
+Copie a saída do último comando para `JWT_SECRET` em `.env`. O servidor recusa iniciar quando essa variável está vazia, é curta, ou ainda tem o valor de exemplo. O arquivo `.env.example` também contém credenciais exclusivamente de desenvolvimento usadas pelo seed; altere-as se necessário.
+
+## Preparar o banco e iniciar
+
+```bash
+npm run setup
 npm run dev
 ```
 
-Acesse http://localhost:3000.
+`setup` executa `prisma generate`, aplica as migrations já versionadas com `prisma migrate deploy` e executa o seed idempotente. Acesse `http://localhost:3000`; `GET /health` é o endpoint de verificação operacional. O banco local padrão é `prisma/dev.db`, criado a partir das migrations. Para executar o seed separadamente: `npm run seed`.
 
-## Testes da API
+Por padrão, o seed cria estas contas apenas para desenvolvimento:
 
-O arquivo requests.http contém requisições para:
+| Papel | E-mail | Senha |
+|---|---|---|
+| Estudante | `student.dev@example.com` | `student-dev-only` |
+| Empresa | `company.dev@example.com` | `company-dev-only` |
 
-- Listar, buscar, criar, atualizar e excluir vagas
-- Casos inválidos e validação de formulário
-- Testes de perfil e notificações
+As variáveis `SEED_STUDENT_EMAIL`, `SEED_STUDENT_PASSWORD`, `SEED_COMPANY_EMAIL` e `SEED_COMPANY_PASSWORD` substituem os valores padrão.
 
-Use a extensão REST Client do VSCode para enviar as requisições.
+## Desenvolvimento e testes
 
-## Autenticação
+```bash
+npm run typecheck
+npm run build:front
+npm test
+```
 
-Configure `DATABASE_URL` e `JWT_SECRET` no arquivo `.env`; `JWT_SECRET` é obrigatório e deve ser uma chave forte, diferente do valor de exemplo. O cadastro usa `bcrypt` com fator 12 e grava somente `passwordHash`; o e-mail é único no banco. O login retorna um JWT com validade de duas horas. Envie-o como `Authorization: Bearer <token>` para acessar o próprio perfil e operações de escrita de vagas/notificações. O arquivo `requests.http` demonstra cadastro, validações, e-mail duplicado, login válido e inválido, acesso sem token, acesso autenticado e logout.
+`npm test` executa uma suíte automatizada com `node:test`, sobe a API e cria um banco SQLite exclusivo do processo de teste, aplicando nele `prisma migrate deploy`. O teste não usa nem apaga o banco de desenvolvimento. Os cenários imprimem o esperado e o obtido para autenticação, papéis, vagas, perfil, notificações e candidaturas.
 
-## CRUD no front-end
+## Papéis e autorização
 
-A interface em public permite:
+- `student`: pode manter seu perfil e candidatar-se a vagas; só consulta as próprias candidaturas.
+- `company`: pode gerenciar notificações e vagas; só altera/exclui vagas próprias e só consulta/altera candidaturas recebidas para suas vagas.
+- A listagem e a consulta de vagas são públicas.
+- As demais rotas protegidas recebem `Authorization: Bearer <token>`.
 
-- Criar novas vagas pelo formulário
-- Visualizar vagas cadastradas na lista
-- Editar vagas existentes
-- Excluir vagas com confirmação
-- Navegar entre as seções de vagas, cadastro, perfil e notificações
+## Endpoints
+
+| Método | Rota | Autenticação | Papel / autorização |
+|---|---|---|---|
+| `GET` | `/health` | Não | Público |
+| `POST` | `/api/auth/register` | Não | Cria `student` ou `company` |
+| `POST` | `/api/auth/login` | Não | Público; retorna JWT |
+| `GET` | `/api/auth/me` | Sim | Usuário autenticado |
+| `POST` | `/api/auth/logout` | Sim | Usuário autenticado; cliente remove o JWT |
+| `GET` | `/api/vagas` | Não | Público |
+| `GET` | `/api/vagas/target/:target` | Não | Público |
+| `GET` | `/api/vagas/:id` | Não | Público |
+| `POST` | `/api/vagas` | Sim | `company` |
+| `PUT` | `/api/vagas/:id` | Sim | `company`, somente a dona |
+| `DELETE` | `/api/vagas/:id` | Sim | `company`, somente a dona |
+| `GET` | `/api/perfil` | Sim | Usuário autenticado; próprio perfil |
+| `GET` | `/api/perfil/:id` | Sim | Usuário autenticado; próprio perfil |
+| `POST` | `/api/perfil` | Sim | Usuário autenticado; próprio perfil |
+| `PUT` | `/api/perfil` | Sim | Usuário autenticado; próprio perfil |
+| `PUT` | `/api/perfil/:id` | Sim | Usuário autenticado; próprio perfil |
+| `DELETE` | `/api/perfil/:id` | Sim | Usuário autenticado; próprio perfil |
+| `GET` | `/api/notificacoes` | Sim | `company` |
+| `GET` | `/api/notificacoes/:id` | Sim | `company` |
+| `POST` | `/api/notificacoes` | Sim | `company` |
+| `PUT` | `/api/notificacoes/:id` | Sim | `company` |
+| `DELETE` | `/api/notificacoes/:id` | Sim | `company` |
+| `POST` | `/api/vagas/:id/candidaturas` | Sim | `student`; uma candidatura por usuário/vaga |
+| `GET` | `/api/candidaturas/minhas` | Sim | `student`; próprias candidaturas |
+| `GET` | `/api/vagas/:id/candidaturas` | Sim | `company`; dona da vaga |
+| `PATCH` | `/api/candidaturas/:id/status` | Sim | `company`; dona da vaga; `Pendente`, `Aceito` ou `Rejeitado` |
+
+Rotas desconhecidas sob `/api` retornam 404 em JSON. Operações de autenticação têm limitação de tentativas e o JSON de entrada é limitado a 100 KB.
+
+## Organização do projeto
+
+```text
+.
+├── docs/                 # ERD e documentação da entrega
+├── prisma/               # schema, migrations e seed
+├── public/                # HTML/CSS, assets e JavaScript compilado
+│   ├── css/
+│   └── js/                # fontes TypeScript e saída JavaScript
+├── scripts/               # suíte de API e utilitários de limpeza protegidos
+├── src/
+│   ├── controllers/       # endpoints Express
+│   ├── middleware/        # autenticação JWT
+│   └── models/            # acesso ao SQLite por Prisma
+├── server.ts
+├── requests.http
+└── package.json
+```
+
+O diagrama entidade-relacionamento está em [docs/erd-migration.mmd](./docs/erd-migration.mmd).
+
+## Limitações conhecidas
+
+- O JWT é armazenado no `localStorage` do navegador; XSS pode expô-lo.
+- Logout remove o token no cliente, mas não revoga tokens já emitidos.
+- Não há recuperação de senha, upload de currículo, paginação nem aplicação móvel.
+- SQLite é adequado à demonstração e desenvolvimento deste projeto, mas não oferece a mesma concorrência/escalabilidade de um banco servidor.
+- Vagas existentes sem dono (registros legados) não podem ser editadas por empresas.
